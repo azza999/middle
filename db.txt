@@ -1,0 +1,11 @@
+CREATE DATABASE test DEFAULT CHARACTER SET utf8;
+
+CREATE TABLE users(
+	id VARCHAR(30), name VARCHAR(30), password VARCHAR(30)
+);
+
+CREATE TABLE register(
+	uid VARCHAR(30), sid int, rdate DATE
+);
+
+INSERT INTO users VALUES ('master','master','mst');
