@@ -61,7 +61,6 @@ app.get('/fail', function (req,res) {
 })
 
 app.post('/loginProcess', function (req,res) {
-    console.log(req.body)
     conn.query('SELECT * FROM users WHERE id = ? AND password = ?', [req.body.username, req.body.password] , (err,result) => {
 		if (result.length === 0) {
 			req.session.alert = true;
@@ -69,7 +68,6 @@ app.post('/loginProcess', function (req,res) {
 			
 			return;
 		}
-		console.log('user logined:' + result)
         req.session.uid = result[0].id
         res.redirect('/register')
     });
@@ -77,13 +75,11 @@ app.post('/loginProcess', function (req,res) {
 });
 
 function alertDirect(res, url, text) {
-	res.send('<script>alert("'+ text +'"); location.href="'+url+'"</script>');
+	res.send('<script>alert("'+ text +'"); /*return;*/ location.href="'+url+'"</script>');
 }
 
 app.post('/registerProcess', function (req, res) {
-	console.log('register on :' + req.session.uid);
-	conn.query('SELECT sid, COUNT(*) as cnt FROM register GROUP BY sid ORDER BY sid', [req.body.j2], (e,result) =>{ 
-		console.log(result);
+	conn.query('SELECT sid, COUNT(*) as cnt FROM register GROUP BY sid ORDER BY sid', (e,result) =>{ 
 		let arr = []
 		for (let i = 0; i < 20; i++) {
 			arr[i] = 0;
@@ -98,7 +94,7 @@ app.post('/registerProcess', function (req, res) {
 		conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.y2, new Date()])
 		conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.j1, new Date()])
 		conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.j2, new Date()])
-		res.redirect('/register')
+		res.redirect('/alert')
 	});
 });
 
@@ -106,10 +102,13 @@ app.get('/register', function (req,res){
     if (req.session.uid === undefined) {
 		res.redirect('/login')
 		return;
+	} else if (false && new Date() >= new Date('2023-03-04 10:00:00')) {
+		res.redirect('/pre-open'); return;
 	} else {
 		let data
-		conn.query("SELECT COUNT(*) as cnt FROM register WHERE sid = ?", [req.session.uid], (e, r) =>{
-			if (r[0].cnt > 1) alertDirect(res, '/alert','강의신청이 이미 완료되었습니다!');
+		conn.query("SELECT COUNT(*) as cnt FROM register WHERE uid = ?", [req.session.uid], (e, r) =>{
+			console.log(r)
+			if (r[0].cnt > 1) {alertDirect(res, '/alert','강의신청이 이미 완료되었습니다!'); return;}
 			conn.query("SELECT * FROM register", (err,result) => {
 				data = result
 			
@@ -120,11 +119,15 @@ app.get('/register', function (req,res){
 					subs[data[i].sid]++;
 				}
 
-				console.log(subs)
 				res.render('register.ejs', {'data' : data, 'subs' : subs});
 			})
 		});
 	}
+})
+
+app.get('/logoutProcess', function (req,res) {
+	req.session.uid = undefined;
+	res.redirect('/login');
 })
 	
 
@@ -132,7 +135,6 @@ app.get('/manage', function (req,res) {
 	if(req.session.uid !== 'master') { res.redirect('/'); return; }
 	conn.query("SELECT * FROM users", (er,users)=>{
 		conn.query("SELECT * FROM register", (e,registers)=>{
-			console.log(users,registers);
     		res.render('management.ejs', {users: users, registers: registers});
 		})
 	})
@@ -141,4 +143,8 @@ app.get('/manage', function (req,res) {
 app.get('/alert', function (req,res) {
 	res.render('alert.ejs');
 
+})
+
+app.get('/pre-open', function (req,res) {
+	res.render('preopen.ejs');
 })

@@ -35,11 +35,35 @@
 
   <script type="text/javascript">
 
-    accounts = JSON.parse('<%= JSON.stringify(users) %>')
-    registers = JSON.parse('<%= JSON.stringify(registers) %>')
+    accounts = JSON.parse('<%- JSON.stringify(users) %>')
+    registers = JSON.parse('<%- JSON.stringify(registers) %>')
 
-    function getCSV(filename, data) {
+    function getAccountCSV(filename) {
+		let csv = [];
+		let row = [];
+		row.push("id", "name", "password")
+		csv.push(row.join(','));
 
+		accounts.forEach((e,i)=>{
+			row = [];
+			row.push(e.id, e.name, e.password)
+			csv.push(row.join(','))
+		})
+		downloadCSV(csv.join("\n"), filename)
+    }
+
+    function getRegisterCSV(filename) {
+		let csv = [];
+		let row = [];
+		row.push("user id", "subject id", "register datetime")
+		csv.push(row.join(','));
+
+		registers.forEach((e,i)=>{
+			row = [];
+			row.push(e.uid, e.sid, e.rdate)
+			csv.push(row.join(','))
+		})
+		downloadCSV(csv.join('\n'), filename)
     }
 
     function downloadCSV(csv,filename) {
@@ -60,11 +84,11 @@
     $(document).ready(_=>{
       $('#account').on('click', e=>{
         let filename = "accounts.csv";
-        getCSV(filename, accounts);
+        getAccountCSV(filename);
       })
       $('#result').on('click', e=>{
         let filename = "registers.csv";
-        getCSV(filename, registers);
+        getRegisterCSV(filename);
       })
     })
 
