@@ -133,7 +133,7 @@ app.get('/manage', function (req,res) {
 	conn.query("SELECT * FROM users", (er,users)=>{
 		conn.query("SELECT * FROM register", (e,registers)=>{
 			console.log(users,registers);
-    		res.render('management.ejs');
+    		res.render('management.ejs', {users: users, registers: registers});
 		})
 	})
 })

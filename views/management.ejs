@@ -21,8 +21,9 @@
           <div class="card-header">
             <h3 class="text-center">페이지 관리</h3>
           </div>
-          <div class="card-body p-0">
-            
+          <div class="card-body">
+            <div id="account" class="btn btn-secondary">계정 목록 다운받기</div>
+            <div id="result" class="btn btn-secondary">신청 결과 다운받기</div>
           </div>
         </div>
       </div>
@@ -31,5 +32,42 @@
   <!-- Link to Bootstrap.js and jQuery libraries -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script type="text/javascript">
+
+    accounts = JSON.parse('<%= JSON.stringify(users) %>')
+    registers = JSON.parse('<%= JSON.stringify(registers) %>')
+
+    function getCSV(filename, data) {
+
+    }
+
+    function downloadCSV(csv,filename) {
+      let csvFile, link;
+
+      const BOM = "\uFEFF";
+      csv = BOM + csv;
+
+      csvFile = new Blob([csv], {type: "text/csv"});
+      link = document.createElement("a")
+      link.download = filename;
+      link.href = window.URL.createObjectURL(csvFile);
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+    }
+
+    $(document).ready(_=>{
+      $('#account').on('click', e=>{
+        let filename = "accounts.csv";
+        getCSV(filename, accounts);
+      })
+      $('#result').on('click', e=>{
+        let filename = "registers.csv";
+        getCSV(filename, registers);
+      })
+    })
+
+  </script>
 </body>
 </html>
