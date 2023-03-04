@@ -71,16 +71,31 @@ app.post('/registerProcess', function (req, res) {
 	conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.y2, new Date()])
 	conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.j1, new Date()])
 	conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.j2, new Date()])
+	res.redirect('/register')
 });
 
 app.get('/register', function (req,res){
-    if (req.session.uid === undefined) res.redirect('/login')
-	else
-		res.render('register.html');
-	
-	
-})
+    if (req.session.uid === undefined) {
+		res.redirect('/login')
+		return;
+	} else {
+		let data
+		conn.query("SELECT * FROM register", (err,result) => {
+			data = result
+			
+			let subs = [];
+			for (let i = 0; i < 20; i++) subs[i] = 0;
 
+			for (let i = 0; i < data.length; i++) {
+				subs[data[i].sid]++;
+			}
+
+			console.log(subs)
+			res.render('register.ejs', {'data' : data, 'subs' : subs});
+		});
+	}
+})
+	
 
 app.get('/management', function (req,res) {
     res.render('retry.html');
