@@ -64,6 +64,15 @@ app.post('/loginProcess', function (req,res) {
 
 });
 
+app.post('/registerProcess', function (req, res) {
+	console.log('register on :' + req.session.uid);
+	console.log(req.body);
+	conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.y1, new Date()])
+	conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.y2, new Date()])
+	conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.j1, new Date()])
+	conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.j2, new Date()])
+});
+
 app.get('/register', function (req,res){
     if (req.session.uid === undefined) res.redirect('/login')
 	else
