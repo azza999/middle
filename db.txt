@@ -5,7 +5,7 @@ CREATE TABLE users(
 );
 
 CREATE TABLE register(
-	uid VARCHAR(30), sid int, rdate DATE
+	uid VARCHAR(30), sid int, rdate DATETIME(3)
 );
 
 INSERT INTO users VALUES ('master','master','mst');
