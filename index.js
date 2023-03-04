@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const bodyParser = require('body-parser');
 const mysql = require ('mysql');
 
 const conn = mysql.createConnection({
@@ -11,15 +12,18 @@ const conn = mysql.createConnection({
 });
 
 const app = express();
-app.get('/', function (req, res) {
-    res.send('Hello World!');
-});
 
 app.use(session({
     HttpOnly: true,
     secure: false,
     secret: 'sseeccrreett'
 }));
+
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended: false}))
+
+app.set('view engine', 'ejs');
+app.engine('html', require('ejs').renderFile);
 
 var server = app.listen(80, function () {
     var host = server.address().address;
@@ -33,11 +37,17 @@ app.use(express.static('js'));
 
 
 app.get('/', function (req,res) {
-    res.render('login.html');
+	if (req.session.uid === undefined)
+    	res.render('login.html');
+	else
+		res.redirect('/register');
 });
 
 app.get('/login', function (req,res) {
-    res.render('login.html');
+	if (req.session.uid !== undefined)
+		res.redirect('/register');
+	else
+		res.render('login.html');
 });
 
 app.get('/fail', function (req,res) {
@@ -45,12 +55,23 @@ app.get('/fail', function (req,res) {
 })
 
 app.post('/loginProcess', function (req,res) {
-    conn.query('SELECT * FROM users WHERE id = ? AND password = ?', (err,result) => {
-        req.session.uid = result[0].uid
+    console.log(req.body)
+    conn.query('SELECT * FROM users WHERE id = ? AND password = ?', [req.body.username, req.body.password] , (err,result) => {
+		console.log('user logined:' + result)
+        req.session.uid = result[0].id
+        res.redirect('/register')
     });
-    res.send('result[0].uid');
 
 });
+
+app.get('/register', function (req,res){
+    if (req.session.uid === undefined) res.redirect('/login')
+	else
+		res.render('register.html');
+	
+	
+})
+
 
 app.get('/management', function (req,res) {
     res.render('retry.html');
