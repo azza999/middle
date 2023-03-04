@@ -38,7 +38,7 @@ app.use(express.static('js'));
 
 app.get('/', function (req,res) {
 	if (req.session.uid === undefined)
-    	res.render('login.html');
+   		res.redirect('/login');	
 	else
 		res.redirect('/register');
 });
@@ -46,8 +46,14 @@ app.get('/', function (req,res) {
 app.get('/login', function (req,res) {
 	if (req.session.uid !== undefined)
 		res.redirect('/register');
-	else
-		res.render('login.html');
+	else {
+		let _alert = false;
+		if (req.session.alert === true) {
+			req.session.alert = null;
+			_alert = true;
+		}
+		res.render('login.ejs',{_alert : _alert});
+	}
 });
 
 app.get('/fail', function (req,res) {
@@ -57,6 +63,12 @@ app.get('/fail', function (req,res) {
 app.post('/loginProcess', function (req,res) {
     console.log(req.body)
     conn.query('SELECT * FROM users WHERE id = ? AND password = ?', [req.body.username, req.body.password] , (err,result) => {
+		if (result.length === 0) {
+			req.session.alert = true;
+			res.redirect('/login');
+			
+			return;
+		}
 		console.log('user logined:' + result)
         req.session.uid = result[0].id
         res.redirect('/register')
@@ -64,14 +76,30 @@ app.post('/loginProcess', function (req,res) {
 
 });
 
+function alertDirect(res, url, text) {
+	res.send('<script>alert("'+ text +'"); location.href="'+url+'"</script>');
+}
+
 app.post('/registerProcess', function (req, res) {
 	console.log('register on :' + req.session.uid);
-	console.log(req.body);
-	conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.y1, new Date()])
-	conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.y2, new Date()])
-	conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.j1, new Date()])
-	conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.j2, new Date()])
-	res.redirect('/register')
+	conn.query('SELECT sid, COUNT(*) as cnt FROM register GROUP BY sid ORDER BY sid', [req.body.j2], (e,result) =>{ 
+		console.log(result);
+		let arr = []
+		for (let i = 0; i < 20; i++) {
+			arr[i] = 0;
+		}
+		for (let i = 0; i < result.length; i++) {
+			arr[result[i].sid] = result[i].cnt;
+		}
+
+		if (arr[req.body.y1] >= 21 || arr[req.body.y2] >= 21 || arr[req.body.j1] >= 21 || arr[req.body.j2] >= 21) {alertDirect(res, '/login','이미 가득 찬 강의입니다!'); return;}
+
+		conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.y1, new Date()])
+		conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.y2, new Date()])
+		conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.j1, new Date()])
+		conn.query('INSERT INTO register VALUES(?, ?, ?);', [req.session.uid, req.body.j2, new Date()])
+		res.redirect('/register')
+	});
 });
 
 app.get('/register', function (req,res){
@@ -80,23 +108,37 @@ app.get('/register', function (req,res){
 		return;
 	} else {
 		let data
-		conn.query("SELECT * FROM register", (err,result) => {
-			data = result
+		conn.query("SELECT COUNT(*) as cnt FROM register WHERE sid = ?", [req.session.uid], (e, r) =>{
+			if (r[0].cnt > 1) alertDirect(res, '/alert','강의신청이 이미 완료되었습니다!');
+			conn.query("SELECT * FROM register", (err,result) => {
+				data = result
 			
-			let subs = [];
-			for (let i = 0; i < 20; i++) subs[i] = 0;
+				let subs = [];
+				for (let i = 0; i < 20; i++) subs[i] = 0;
 
-			for (let i = 0; i < data.length; i++) {
-				subs[data[i].sid]++;
-			}
+				for (let i = 0; i < data.length; i++) {
+					subs[data[i].sid]++;
+				}
 
-			console.log(subs)
-			res.render('register.ejs', {'data' : data, 'subs' : subs});
+				console.log(subs)
+				res.render('register.ejs', {'data' : data, 'subs' : subs});
+			})
 		});
 	}
 })
 	
 
-app.get('/management', function (req,res) {
-    res.render('retry.html');
+app.get('/manage', function (req,res) {
+	if(req.session.uid !== 'master') { res.redirect('/'); return; }
+	conn.query("SELECT * FROM users", (er,users)=>{
+		conn.query("SELECT * FROM register", (e,registers)=>{
+			console.log(users,registers);
+    		res.render('management.ejs');
+		})
+	})
+})
+
+app.get('/alert', function (req,res) {
+	res.render('alert.ejs');
+
 })

@@ -14,8 +14,6 @@
   </style>
 </head>
 <body>
-<%= subs %>
-<%= data %>
   <div class="container mt-5 mb-5">
     <div class="row justify-content-center">
       <div class="col-lg-12 col-md-12 col-sm-12">
@@ -197,6 +195,13 @@
       18 : 13,
       19 : 14
     }
+    function maxActive() {
+      $('.max').each((i,e)=>{
+        if(Number($(e).text().split(' ')[1] >= 21)) {
+          $('input[type="radio"]').eq(i).attr('disabled',true)
+        }
+      })
+    }
     function reactive () {
       $('input[type="radio"]').attr('disabled',false)
       let $max = $('.max');
@@ -205,17 +210,12 @@
         let val = $(e).val()
         let tgt = dict[val]
         $('input[type="radio"]').eq(tgt).attr('disabled',true);
-        if ($max.eq(i).text().split(' ')[1] >= 21) {
-          $('input[type="radio"]').eq(tgt).attr('disabled',true);
-        }
+        maxActive();
       })
     }
 
     $(document).ready(_=>{
       // 같은거 두개 신청 불가하게
-
-      reactive();
-      
       $('input[type="radio"]').unbind('click');
       $('input[type="radio"]').on('click',e=>{
         reactive();
@@ -225,6 +225,7 @@
         let  val = $(e).text().split(' ')[1]
         if (val >= 21) $(e).css('color','red')
       })
+      maxActive()
 
     })
   </script>

@@ -35,5 +35,10 @@
   <!-- Link to Bootstrap.js and jQuery libraries -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    <% if(_alert === true) { %>
+        alert('잘못된 비밀번호입니다!')
+    <% } %>
+  </script>
 </body>
 </html>
