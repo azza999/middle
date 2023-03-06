@@ -99,10 +99,11 @@ app.post('/registerProcess', function (req, res) {
 });
 
 app.get('/register', function (req,res){
+	console.log(new Date(), new Date('2023-03-07 12:00:00'))
     if (req.session.uid === undefined) {
 		res.redirect('/login')
 		return;
-	} else if (false && new Date() >= new Date('2023-03-04 10:00:00')) {
+	} else if (new Date() <= new Date('2023-03-07 12:00:00')) {
 		res.redirect('/pre-open'); return;
 	} else {
 		let data
